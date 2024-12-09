@@ -9,6 +9,35 @@ interface ClassificationResult {
   score: number;
 }
 
+// Common South Indian butterfly species information
+const butterflySpecies = [
+  {
+    name: "Common Mormon",
+    scientificName: "Papilio polytes",
+    description: "A large swallowtail butterfly commonly found in South India. The males are black with white spots, while females can mimic other species.",
+  },
+  {
+    name: "Common Rose",
+    scientificName: "Pachliopta aristolochiae",
+    description: "A striking red and black butterfly with white spots. Protected by law in India due to its beauty and ecological importance.",
+  },
+  {
+    name: "Crimson Rose",
+    scientificName: "Pachliopta hector",
+    description: "A beautiful butterfly with crimson spots on black wings. Often seen in gardens and forest edges.",
+  },
+  {
+    name: "Blue Tiger",
+    scientificName: "Tirumala limniace",
+    description: "A medium-sized butterfly with striking blue-black wings with white streaks. Common in gardens and wooded areas.",
+  },
+  {
+    name: "Tailed Jay",
+    scientificName: "Graphium agamemnon",
+    description: "A green-spotted butterfly with distinctive tails on its hindwings. Fast flyer often seen in gardens.",
+  }
+];
+
 const Index = () => {
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<ClassificationResult | null>(null);
@@ -57,7 +86,7 @@ const Index = () => {
           <h1 className="text-4xl font-bold text-primary mb-4 animate-float">
             South Indian Butterfly Identifier
           </h1>
-          <p className="text-lg text-textDark max-w-2xl mx-auto">
+          <p className="text-lg text-textDark max-w-2xl mx-auto mb-8">
             Take a photo or upload an image of a butterfly to identify its species
           </p>
         </div>
@@ -65,6 +94,17 @@ const Index = () => {
         <div className="space-y-8">
           <ImageUpload onImageSelect={handleImageSelect} />
           <ButterflyResult loading={loading} result={result} />
+          
+          {/* Display butterfly species information */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mt-12">
+            {butterflySpecies.map((butterfly) => (
+              <div key={butterfly.name} className="bg-white p-6 rounded-lg shadow-md">
+                <h3 className="text-xl font-semibold text-primary mb-2">{butterfly.name}</h3>
+                <p className="text-sm text-gray-600 italic mb-3">{butterfly.scientificName}</p>
+                <p className="text-gray-700">{butterfly.description}</p>
+              </div>
+            ))}
+          </div>
         </div>
       </div>
     </div>
