@@ -28,8 +28,11 @@ const Index = () => {
       const imageUrl = URL.createObjectURL(file);
       const output = await classifier(imageUrl);
       
-      if (Array.isArray(output) && output.length > 0) {
-        const firstResult = output[0];
+      // Type guard to ensure output is an array and has the expected structure
+      if (Array.isArray(output) && output.length > 0 && 
+          typeof output[0] === 'object' && output[0] !== null &&
+          'label' in output[0] && 'score' in output[0]) {
+        const firstResult = output[0] as { label: string; score: number };
         setResult({
           label: firstResult.label,
           score: firstResult.score
