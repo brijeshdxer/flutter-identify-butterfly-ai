@@ -4,9 +4,14 @@ import { ButterflyResult } from '@/components/ButterflyResult';
 import { pipeline } from '@huggingface/transformers';
 import { useToast } from '@/components/ui/use-toast';
 
+interface ClassificationResult {
+  label: string;
+  score: number;
+}
+
 const Index = () => {
   const [loading, setLoading] = useState(false);
-  const [result, setResult] = useState<{ label: string; score: number } | null>(null);
+  const [result, setResult] = useState<ClassificationResult | null>(null);
   const { toast } = useToast();
 
   const handleImageSelect = async (file: File) => {
@@ -23,8 +28,12 @@ const Index = () => {
       const imageUrl = URL.createObjectURL(file);
       const output = await classifier(imageUrl);
       
-      if (output && output.length > 0) {
-        setResult(output[0]);
+      if (Array.isArray(output) && output.length > 0) {
+        const firstResult = output[0];
+        setResult({
+          label: firstResult.label,
+          score: firstResult.score
+        });
       }
     } catch (error) {
       console.error('Error classifying image:', error);
