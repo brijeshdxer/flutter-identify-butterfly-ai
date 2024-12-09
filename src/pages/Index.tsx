@@ -48,14 +48,19 @@ const Index = () => {
     setResult(null);
     
     try {
+      console.log('Creating classification pipeline...');
       const classifier = await pipeline(
         'image-classification',
         'onnx-community/mobilenetv4_conv_small.e2400_r224_in1k',
-        { device: 'cpu' }
+        { device: 'wasm' }  // Changed from 'cpu' to 'wasm'
       );
 
+      console.log('Converting file to URL...');
       const imageUrl = URL.createObjectURL(file);
+      
+      console.log('Running classification...');
       const output = await classifier(imageUrl);
+      console.log('Classification output:', output);
       
       // Type guard to ensure output is an array and has the expected structure
       if (Array.isArray(output) && output.length > 0 && 
