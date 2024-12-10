@@ -1,8 +1,10 @@
 import React, { useState } from 'react';
 import { ImageUpload } from '@/components/ImageUpload';
 import { ButterflyResult } from '@/components/ButterflyResult';
+import { ModelTraining } from '@/components/ModelTraining';
 import { pipeline } from '@huggingface/transformers';
 import { useToast } from '@/components/ui/use-toast';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 interface ClassificationResult {
   label: string;
@@ -37,36 +39,29 @@ const butterflySpecies = [
   }
 ];
 
-// Enhanced mapping with more specific features and patterns
 const butterflyMapping: { [key: string]: string } = {
-  // Common Mormon features
   "black": "Common Mormon",
   "white spot": "Common Mormon",
   "swallowtail": "Common Mormon",
   
-  // Common Rose features
   "white": "Common Rose",
   "red body": "Common Rose",
   "spotted": "Common Rose",
   
-  // Crimson Rose features
   "red": "Crimson Rose",
   "crimson": "Crimson Rose",
   "scarlet": "Crimson Rose",
   
-  // Blue Tiger features
   "blue": "Blue Tiger",
   "stripe": "Blue Tiger",
   "tiger": "Blue Tiger",
   "monarch": "Blue Tiger",
   
-  // Tailed Jay features
   "green": "Tailed Jay",
   "emerald": "Tailed Jay",
   "tail": "Tailed Jay",
   "jay": "Tailed Jay",
   
-  // Common misclassifications with more specific mappings
   "wing": "Common Mormon",
   "butterfly": "Common Mormon",
   "insect": "Common Rose",
@@ -76,15 +71,12 @@ const butterflyMapping: { [key: string]: string } = {
 };
 
 const findButterflySpecies = (label: string, score: number): string => {
-  // Convert label to lowercase and split into words
   const words = label.toLowerCase().split(/[\s,-]+/);
   let bestMatch = { species: "Common Mormon", matches: 0 };
   
-  // Count matches for each word in the label
   for (const word of words) {
     for (const [key, species] of Object.entries(butterflyMapping)) {
       if (word.includes(key.toLowerCase()) || key.toLowerCase().includes(word)) {
-        // Find the species with the most matching features
         const currentMatches = Object.entries(butterflyMapping)
           .filter(([k, s]) => s === species)
           .filter(([k]) => words.some(w => k.toLowerCase().includes(w) || w.includes(k.toLowerCase())))
@@ -97,7 +89,6 @@ const findButterflySpecies = (label: string, score: number): string => {
     }
   }
 
-  // If the confidence score is very high (> 0.8), trust the mapping more
   return score > 0.8 ? bestMatch.species : bestMatch.species;
 };
 
@@ -125,7 +116,6 @@ const Index = () => {
       const output = await classifier(imageUrl);
       console.log('Classification output:', output);
       
-      // Type guard to ensure output is an array and has the expected structure
       if (Array.isArray(output) && output.length > 0 && 
           typeof output[0] === 'object' && output[0] !== null &&
           'label' in output[0] && 'score' in output[0]) {
@@ -162,19 +152,30 @@ const Index = () => {
           </p>
         </div>
 
-        <div className="space-y-8">
-          <ImageUpload onImageSelect={handleImageSelect} />
-          <ButterflyResult loading={loading} result={result} />
-          
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mt-12">
-            {butterflySpecies.map((butterfly) => (
-              <div key={butterfly.name} className="bg-white p-6 rounded-lg shadow-md">
-                <h3 className="text-xl font-semibold text-primary mb-2">{butterfly.name}</h3>
-                <p className="text-sm text-gray-600 italic mb-3">{butterfly.scientificName}</p>
-                <p className="text-gray-700">{butterfly.description}</p>
-              </div>
-            ))}
-          </div>
+        <Tabs defaultValue="identify" className="space-y-8">
+          <TabsList className="grid w-full grid-cols-2">
+            <TabsTrigger value="identify">Identify Butterfly</TabsTrigger>
+            <TabsTrigger value="train">Train Model</TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="identify" className="space-y-8">
+            <ImageUpload onImageSelect={handleImageSelect} />
+            <ButterflyResult loading={loading} result={result} />
+          </TabsContent>
+
+          <TabsContent value="train">
+            <ModelTraining />
+          </TabsContent>
+        </Tabs>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mt-12">
+          {butterflySpecies.map((butterfly) => (
+            <div key={butterfly.name} className="bg-white p-6 rounded-lg shadow-md">
+              <h3 className="text-xl font-semibold text-primary mb-2">{butterfly.name}</h3>
+              <p className="text-sm text-gray-600 italic mb-3">{butterfly.scientificName}</p>
+              <p className="text-gray-700">{butterfly.description}</p>
+            </div>
+          ))}
         </div>
       </div>
     </div>
