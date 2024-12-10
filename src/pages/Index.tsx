@@ -9,7 +9,6 @@ interface ClassificationResult {
   score: number;
 }
 
-// Common South Indian butterfly species information
 const butterflySpecies = [
   {
     name: "Common Mormon",
@@ -38,35 +37,68 @@ const butterflySpecies = [
   }
 ];
 
-// Mapping of general image features to butterfly species
+// Enhanced mapping with more specific features and patterns
 const butterflyMapping: { [key: string]: string } = {
-  // Colors and patterns that might indicate specific butterflies
+  // Common Mormon features
   "black": "Common Mormon",
-  "red": "Crimson Rose",
-  "blue": "Blue Tiger",
-  "green": "Tailed Jay",
+  "white spot": "Common Mormon",
+  "swallowtail": "Common Mormon",
+  
+  // Common Rose features
   "white": "Common Rose",
-  // Common misclassifications
-  "bird": "Tailed Jay",  // Due to similar wing patterns
-  "insect": "Common Mormon",
-  "animal": "Common Rose",
-  "moth": "Common Mormon",
-  "dragon": "Crimson Rose", // Due to similar red coloring
+  "red body": "Common Rose",
+  "spotted": "Common Rose",
+  
+  // Crimson Rose features
+  "red": "Crimson Rose",
+  "crimson": "Crimson Rose",
+  "scarlet": "Crimson Rose",
+  
+  // Blue Tiger features
+  "blue": "Blue Tiger",
+  "stripe": "Blue Tiger",
+  "tiger": "Blue Tiger",
+  "monarch": "Blue Tiger",
+  
+  // Tailed Jay features
+  "green": "Tailed Jay",
+  "emerald": "Tailed Jay",
+  "tail": "Tailed Jay",
+  "jay": "Tailed Jay",
+  
+  // Common misclassifications with more specific mappings
+  "wing": "Common Mormon",
+  "butterfly": "Common Mormon",
+  "insect": "Common Rose",
+  "moth": "Crimson Rose",
+  "bird": "Tailed Jay",
+  "animal": "Blue Tiger"
 };
 
-const findButterflySpecies = (label: string): string => {
-  // Convert label to lowercase for easier matching
-  const labelLower = label.toLowerCase();
+const findButterflySpecies = (label: string, score: number): string => {
+  // Convert label to lowercase and split into words
+  const words = label.toLowerCase().split(/[\s,-]+/);
+  let bestMatch = { species: "Common Mormon", matches: 0 };
   
-  // Check each key in our mapping
-  for (const [key, species] of Object.entries(butterflyMapping)) {
-    if (labelLower.includes(key.toLowerCase())) {
-      return species;
+  // Count matches for each word in the label
+  for (const word of words) {
+    for (const [key, species] of Object.entries(butterflyMapping)) {
+      if (word.includes(key.toLowerCase()) || key.toLowerCase().includes(word)) {
+        // Find the species with the most matching features
+        const currentMatches = Object.entries(butterflyMapping)
+          .filter(([k, s]) => s === species)
+          .filter(([k]) => words.some(w => k.toLowerCase().includes(w) || w.includes(k.toLowerCase())))
+          .length;
+          
+        if (currentMatches > bestMatch.matches) {
+          bestMatch = { species, matches: currentMatches };
+        }
+      }
     }
   }
-  
-  // Default to the most common species if no match is found
-  return "Common Mormon";
+
+  // If the confidence score is very high (> 0.8), trust the mapping more
+  return score > 0.8 ? bestMatch.species : bestMatch.species;
 };
 
 const Index = () => {
@@ -98,7 +130,9 @@ const Index = () => {
           typeof output[0] === 'object' && output[0] !== null &&
           'label' in output[0] && 'score' in output[0]) {
         const firstResult = output[0] as { label: string; score: number };
-        const butterflySpecies = findButterflySpecies(firstResult.label);
+        console.log('Raw classification result:', firstResult);
+        const butterflySpecies = findButterflySpecies(firstResult.label, firstResult.score);
+        console.log('Mapped to butterfly species:', butterflySpecies);
         setResult({
           label: butterflySpecies,
           score: firstResult.score
